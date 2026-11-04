@@ -12,6 +12,7 @@
       "supportsTablet": true
     },
     "android": {
+      "package": "com.nexusdevs.ayojon",
       "adaptiveIcon": {
         "backgroundColor": "#EEEAFD",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
@@ -43,6 +44,12 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "7c5615a1-3d72-44c8-ae5b-aaa4dbc43551"
+      }
     }
   }
 }
