@@ -5,6 +5,12 @@ registrations and check in attendees, while students discover and book them.
 
 **Group 2 · Nexus Devs** — Mobile Application Development with React Native & Expo, Fall 2026-27
 
+| Member                | Student ID   | Work package                                   |
+| --------------------- | ------------ | ---------------------------------------------- |
+| ABDUL QUAYUM MAHI     | _(add ID)_   | Authentication, roles & profiles; QR check-in  |
+| MD. MUSFIKUZZAMAN     | _(add ID)_   | Discovery & saved events; booking & tickets    |
+| MD SHOHAG SHAHJAHAN   | _(add ID)_   | Shared setup; organizer events & attendees     |
+
 This is the **midterm frontend**: every screen runs on mock data kept in a
 `useReducer` + `useContext` store. Each screen shows loading, empty, error and
 success states. Camera scanning, AsyncStorage and the REST API are added in the
@@ -124,6 +130,8 @@ app/index.tsx
 app.json
 package.json
 README.md
+.gitignore
+eslint.config.js
 constants/theme.ts
 types/models.ts
 context/app-reducer.ts
@@ -216,7 +224,7 @@ Reducer actions: `CREATE_EVENT`, `UPDATE_EVENT`, `SET_EVENT_STATUS`
 | Discovery      | Saving on Event Details shows the event in Saved Events                                            | `event-details-view.tsx`, `saved/index.tsx` |
 | Booking        | Confirm Booking validates name + email, blocks when no seats, opens a QR ticket                    | `explore/confirm/[id].tsx`            |
 | Booking        | My Tickets cancels only after confirmation                                                         | `tickets/index.tsx`                   |
-| Organizer      | Step 1 + step 2 validate title, category, date, venue, seats > 0 before draft or publish           | `event-info-form.tsx`, `schedule-seats-form.tsx` |
+| Organizer      | Step 1 + step 2 validate title, category, date (not in the past), venue, seats > 0 before draft or publish | `event-info-form.tsx`, `schedule-seats-form.tsx` |
 | Organizer      | Organizer Events filters Published / Drafts / Closed                                               | `events/index.tsx`                    |
 | Organizer      | Manage Event shows registered/remaining seats and opens/closes registration                        | `events/[id].tsx`                     |
 | Organizer      | Attendees searches by name or ticket ID, filters All / Checked in                                  | `events/attendees/[id].tsx`           |
