@@ -1,3 +1,5 @@
+import { findPreset, isImageLink } from "./images";
+
 // Small validation helpers shared by every form in the app.
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -58,5 +60,21 @@ export function validateTicketId(input: string): string | undefined {
   const value = normaliseTicketId(input);
   if (value.length === 0) return "Ticket ID is required.";
   if (!/^AYO-\d{4}$/.test(value)) return "Ticket IDs look like AYO-1024.";
+  return undefined;
+}
+
+// Every event needs a banner: a preset id or an image link
+export function validateBanner(banner: string): string | undefined {
+  const value = banner.trim();
+  if (value.length === 0) return "Choose a banner image for the event.";
+  if (isImageLink(value) || findPreset(value)) return undefined;
+  return "Enter an image link that starts with http:// or https://";
+}
+
+// Optional image link (profile photo)
+export function validateImageLink(link: string): string | undefined {
+  const value = link.trim();
+  if (value.length === 0) return undefined;
+  if (!isImageLink(value)) return "Image links start with http:// or https://";
   return undefined;
 }

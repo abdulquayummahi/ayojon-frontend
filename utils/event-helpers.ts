@@ -1,4 +1,17 @@
-import { AppEvent, Booking } from "../types/models";
+import { Ionicons } from "@expo/vector-icons";
+import { ComponentProps } from "react";
+import { AppEvent, Booking, EventCategory } from "../types/models";
+
+type IconName = ComponentProps<typeof Ionicons>["name"];
+
+// One icon per category, used by chips, cards and the banner picker
+export const CATEGORY_ICONS: Record<EventCategory, IconName> = {
+  Workshop: "construct-outline",
+  Seminar: "mic-outline",
+  Sports: "football-outline",
+  Concert: "musical-notes-outline",
+  Community: "people-outline",
+};
 
 const MONTHS = [
   "January", "February", "March", "April", "May", "June",

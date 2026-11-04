@@ -20,6 +20,7 @@ export const EVENTS: AppEvent[] = [
     id: "e1",
     title: "Design Thinking Workshop",
     category: "Workshop",
+    banner: "workshop-ideas",
     description:
       "Learn to turn a simple problem into an idea. A hands-on session for campus students covering empathy maps, rapid sketching and quick prototyping.",
     organizerId: "org1",
@@ -35,6 +36,7 @@ export const EVENTS: AppEvent[] = [
     id: "e2",
     title: "Career Talk: Getting Started",
     category: "Seminar",
+    banner: "seminar-career",
     description:
       "Alumni from local tech companies share how they found their first job, what recruiters look for, and how to build a portfolio while studying.",
     organizerId: "org1",
@@ -50,6 +52,7 @@ export const EVENTS: AppEvent[] = [
     id: "e3",
     title: "UX Portfolio Review Night",
     category: "Workshop",
+    banner: "workshop-laptop",
     description:
       "Bring your portfolio and get one-to-one feedback from senior designers. Registration is closed because all mentor slots are assigned.",
     organizerId: "org1",
@@ -65,6 +68,7 @@ export const EVENTS: AppEvent[] = [
     id: "e4",
     title: "Campus Photography Walk",
     category: "Community",
+    banner: "community-camera",
     description:
       "A slow walk around campus to practise composition and lighting with your phone camera. All skill levels welcome.",
     organizerId: "org1",
@@ -80,6 +84,7 @@ export const EVENTS: AppEvent[] = [
     id: "e5",
     title: "Inter-University Football Friendly",
     category: "Sports",
+    banner: "sports-football",
     description:
       "A friendly match between AIUB and NSU. Seats in the stand are limited, so book early. Wear your club colours!",
     organizerId: "org2",
@@ -95,6 +100,7 @@ export const EVENTS: AppEvent[] = [
     id: "e6",
     title: "Dhanmondi Lake Community Run",
     category: "Community",
+    banner: "sports-run",
     description:
       "A 5 km fun run around Dhanmondi Lake to raise awareness about clean public spaces. Water and T-shirts provided.",
     organizerId: "org2",
@@ -110,6 +116,7 @@ export const EVENTS: AppEvent[] = [
     id: "e7",
     title: "Acoustic Night: Winter Sessions",
     category: "Concert",
+    banner: "concert-acoustic",
     description:
       "Student bands play acoustic sets under the lights. Bring a friend and a warm shawl.",
     organizerId: "org2",
@@ -125,6 +132,7 @@ export const EVENTS: AppEvent[] = [
     id: "e8",
     title: "Intro to Mobile UI Design (Online)",
     category: "Seminar",
+    banner: "seminar-stage",
     description:
       "A live online seminar on layout, spacing and colour for mobile screens. The meeting link appears on your ticket.",
     organizerId: "org1",

@@ -11,6 +11,7 @@ export interface User {
   role: Role;
   phone: string;
   bio: string;
+  avatarUrl: string; // profile photo link, "" = show initials instead
 }
 
 export type EventCategory =
@@ -31,6 +32,9 @@ export interface AppEvent {
   id: string;
   title: string;
   category: EventCategory;
+  // Banner image: a preset id from data/banners.ts (e.g. "workshop-ideas")
+  // or a full image link starting with http(s)://
+  banner: string;
   description: string;
   organizerId: string;
   organizerName: string;

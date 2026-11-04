@@ -10,6 +10,7 @@ export const USERS: User[] = [
     role: "attendee",
     phone: "01711-000111",
     bio: "CSE student who loves design workshops and football.",
+    avatarUrl: "https://i.pravatar.cc/150?img=12",
   },
   {
     id: "org1",
@@ -19,6 +20,7 @@ export const USERS: User[] = [
     role: "organizer",
     phone: "01711-000222",
     bio: "Workshops and talks on design thinking and UX.",
+    avatarUrl: "",
   },
   {
     id: "org2",
@@ -28,5 +30,6 @@ export const USERS: User[] = [
     role: "organizer",
     phone: "01711-000333",
     bio: "Tournaments, friendlies and community runs.",
+    avatarUrl: "",
   },
 ];

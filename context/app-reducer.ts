@@ -35,7 +35,13 @@ export type AppAction =
   | { type: "REGISTER"; payload: User }
   | {
       type: "UPDATE_PROFILE";
-      payload: { userId: string; name: string; phone: string; bio: string };
+      payload: {
+        userId: string;
+        name: string;
+        phone: string;
+        bio: string;
+        avatarUrl: string;
+      };
     }
   // Check-in (Mahi)
   | { type: "CHECK_IN"; payload: { bookingId: string; time: string } }
@@ -64,11 +70,11 @@ export function appReducer(state: AppState, action: AppAction): AppState {
       };
 
     case "UPDATE_PROFILE": {
-      const { userId, name, phone, bio } = action.payload;
+      const { userId, name, phone, bio, avatarUrl } = action.payload;
       return {
         ...state,
         users: state.users.map((u) =>
-          u.id === userId ? { ...u, name, phone, bio } : u
+          u.id === userId ? { ...u, name, phone, bio, avatarUrl } : u
         ),
       };
     }
