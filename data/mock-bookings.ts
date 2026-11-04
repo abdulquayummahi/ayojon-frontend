@@ -35,7 +35,7 @@ function makeBookings(
       status: cancelled ? "cancelled" : "booked",
       bookedAt: "2026-10-28T09:00:00.000Z",
       checkedInAt:
-        !cancelled && i < checkedIn ? "2026-11-12T09:45:00.000Z" : null,
+        !cancelled && i < checkedIn ? "2026-11-12T03:45:00.000Z" : null,
     });
   }
   return list;

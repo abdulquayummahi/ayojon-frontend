@@ -39,8 +39,8 @@ export default function MyTicketsScreen() {
     }, 900);
 
     return () => clearTimeout(timeoutId);
-  // Runs only when the trigger changes (Submit pressed), not on every
-  // keystroke — so the other values are left out on purpose.
+  // Runs only when cancellingId changes (the user confirmed a cancel).
+  // dispatch never changes, so it is left out on purpose.
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cancellingId]);
 

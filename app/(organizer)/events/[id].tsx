@@ -49,8 +49,9 @@ export default function ManageEventScreen() {
     }, 800);
 
     return () => clearTimeout(timeoutId);
-  // Runs only when the trigger changes (Submit pressed), not on every
-  // keystroke — so the other values are left out on purpose.
+  // Runs only when pendingStatus changes (the organizer pressed the open/close
+  // button). event and dispatch are left out on purpose, so a store update
+  // doesn't restart the timer.
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pendingStatus]);
 

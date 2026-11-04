@@ -108,8 +108,9 @@ export default function RegisterScreen() {
     }, 1200);
 
     return () => clearTimeout(timeoutId);
-  // Runs only when the trigger changes (Submit pressed), not on every
-  // keystroke — so the other values are left out on purpose.
+  // Runs only when submitTrigger changes (Create account pressed). formData
+  // and role are read inside but left out on purpose, so typing doesn't
+  // restart the timer.
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [submitTrigger]);
 
@@ -183,6 +184,7 @@ export default function RegisterScreen() {
       />
 
       <Pressable
+        accessibilityRole="link"
         onPress={() =>
           router.canGoBack() ? router.back() : router.replace("/login")
         }

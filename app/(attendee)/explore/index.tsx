@@ -103,7 +103,12 @@ export default function ExploreScreen() {
           returnKeyType="search"
         />
         {query.length > 0 ? (
-          <Pressable onPress={() => setQuery("")} hitSlop={8}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Clear search"
+            onPress={() => setQuery("")}
+            hitSlop={8}
+          >
             <Ionicons name="close-circle" size={18} color={Colors.textLight} />
           </Pressable>
         ) : null}

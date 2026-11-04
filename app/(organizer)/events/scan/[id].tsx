@@ -65,8 +65,9 @@ export default function ScanTicketScreen() {
     }, 900);
 
     return () => clearTimeout(timeoutId);
-  // Runs only when the trigger changes (Submit pressed), not on every
-  // keystroke — so the other values are left out on purpose.
+  // Runs only when checkTrigger changes (Check in pressed). ticketInput, event
+  // and state are read inside but left out on purpose, so typing doesn't
+  // restart the timer.
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [checkTrigger]);
 
