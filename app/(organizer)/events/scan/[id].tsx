@@ -7,7 +7,7 @@ import FormField from "../../../../components/ui/form-field";
 import Screen from "../../../../components/ui/screen";
 import ScreenHeader from "../../../../components/ui/screen-header";
 import { ErrorState } from "../../../../components/ui/state-views";
-import { Colors, Radius } from "../../../../constants/theme";
+import { Colors, FontSize, Radius } from "../../../../constants/theme";
 import { useApp } from "../../../../context/app-context";
 import { checkTicket } from "../../../../utils/check-in";
 import {
@@ -93,22 +93,37 @@ export default function ScanTicketScreen() {
   };
 
   return (
-    <Screen scroll>
-      <ScreenHeader title="Scan ticket" subtitle={event.title} />
+    <Screen
+      scroll
+      footer={
+        <Button title="Check in" icon="checkmark-circle-outline" onPress={handleCheck} loading={isChecking} />
+      }
+    >
+      <ScreenHeader title="Scan ticket" subtitle={event.title} backLabel="Back to event" />
 
       <View style={styles.camera}>
         <View style={styles.frame}>
-          <Ionicons name="qr-code-outline" size={44} color={Colors.textLight} />
-          <Text style={styles.cameraText}>Camera preview</Text>
+          <View style={[styles.corner, styles.topLeft]} />
+          <View style={[styles.corner, styles.topRight]} />
+          <View style={[styles.corner, styles.bottomLeft]} />
+          <View style={[styles.corner, styles.bottomRight]} />
+          <Ionicons name="qr-code-outline" size={56} color="rgba(255,255,255,0.55)" />
+          <View style={styles.scanLine} />
         </View>
+        <Text style={styles.cameraText}>Camera preview</Text>
       </View>
-      <Text style={styles.note}>
-        Camera scanning is added in the final term. For now, type the ticket ID
-        shown under the attendee’s QR code.
-      </Text>
+
+      <View style={styles.noteBox}>
+        <Ionicons name="information-circle-outline" size={18} color={Colors.primary} />
+        <Text style={styles.note}>
+          Camera scanning is added in the final term. For now, type the ticket ID
+          shown under the attendee’s QR code.
+        </Text>
+      </View>
 
       <FormField
         label="Ticket ID"
+        icon="ticket-outline"
         value={ticketInput}
         onChangeText={setTicketInput}
         onBlur={() => setTouched(true)}
@@ -117,43 +132,44 @@ export default function ScanTicketScreen() {
         autoCorrect={false}
         error={touched ? error : undefined}
       />
-
-      <Button title="Check in" onPress={handleCheck} loading={isChecking} />
-      <Button
-        title="Back to event"
-        variant="secondary"
-        onPress={() => router.back()}
-        disabled={isChecking}
-        style={styles.secondary}
-      />
     </Screen>
   );
 }
 
+const CORNER = 28;
+
 const styles = StyleSheet.create({
   camera: {
-    height: 230,
+    height: 260,
+    borderRadius: Radius.xl,
     backgroundColor: Colors.dark,
-    borderRadius: Radius.lg,
     alignItems: "center",
     justifyContent: "center",
+    marginBottom: 16,
   },
-  frame: {
-    width: 160,
-    height: 160,
-    borderWidth: 2,
-    borderColor: "#8E86C9",
-    borderRadius: Radius.md,
-    alignItems: "center",
-    justifyContent: "center",
+  frame: { width: 170, height: 170, alignItems: "center", justifyContent: "center" },
+  corner: { position: "absolute", width: CORNER, height: CORNER, borderColor: Colors.white },
+  topLeft: { top: 0, left: 0, borderTopWidth: 4, borderLeftWidth: 4, borderTopLeftRadius: 12 },
+  topRight: { top: 0, right: 0, borderTopWidth: 4, borderRightWidth: 4, borderTopRightRadius: 12 },
+  bottomLeft: { bottom: 0, left: 0, borderBottomWidth: 4, borderLeftWidth: 4, borderBottomLeftRadius: 12 },
+  bottomRight: { bottom: 0, right: 0, borderBottomWidth: 4, borderRightWidth: 4, borderBottomRightRadius: 12 },
+  scanLine: {
+    position: "absolute",
+    left: 14,
+    right: 14,
+    top: "50%",
+    height: 3,
+    borderRadius: 2,
+    backgroundColor: "#8B74FF",
+  },
+  cameraText: { color: "rgba(255,255,255,0.6)", fontSize: FontSize.caption, marginTop: 14, fontWeight: "600" },
+  noteBox: {
+    flexDirection: "row",
     gap: 8,
+    padding: 12,
+    borderRadius: Radius.lg,
+    backgroundColor: Colors.primarySoft,
+    marginBottom: 16,
   },
-  cameraText: { color: Colors.textLight, fontSize: 14 },
-  note: {
-    fontSize: 13,
-    color: Colors.textMuted,
-    marginVertical: 16,
-    lineHeight: 19,
-  },
-  secondary: { marginTop: 10 },
+  note: { flex: 1, fontSize: FontSize.caption, color: Colors.textMuted, lineHeight: 18 },
 });
