@@ -16,6 +16,19 @@ This is the **midterm frontend**: every screen runs on mock data kept in a
 success states. Camera scanning, AsyncStorage and the REST API are added in the
 final term.
 
+## Pictures
+
+- **Event banners (required).** Every event has a banner image. In Create / Edit
+  Event (step 1) the organizer picks one of 12 built-in banners
+  (`assets/banners`, matched to the category first) or pastes an image link.
+  Banners appear on every event card, Event Details, Manage Event, Confirm
+  Booking and the QR ticket.
+- **Profile photos (optional).** Profile → Edit lets a user pick a photo from
+  pravatar.cc placeholders (the same ones used in the Week 2 lab) or keep their
+  initials.
+- Images use React Native's `<Image source={…} resizeMode="cover" />` (Week 2).
+  If a pasted link can't load, a placeholder icon is shown instead.
+
 ---
 
 ## Run the app
@@ -99,19 +112,23 @@ Form fields, search text and filters stay as **local** `useState` in their scree
 app/          Screens and navigators (Expo Router, file-based routing)
 components/
   ui/         Reusable building blocks: Button, FormField, Chip, ChipRow, Card,
-              Banner, StatusBadge, ConfirmDialog, Screen, ScreenHeader,
-              LoadingState / EmptyState / ErrorState
+              Banner (message strip), BannerImage (event picture), Avatar,
+              ProgressBar, StatusBadge, ConfirmDialog, Screen, ScreenHeader,
+              LoadingState / EmptyState / ErrorState, tab bar options
   events/     EventCard, DateBadge
-  auth/       ProfileView
+  auth/       ProfileView (with profile photo picker)
   discovery/  EventDetailsView
   booking/    TicketView, SampleQr
-  organizer/  EventInfoForm (step 1), ScheduleSeatsForm (step 2)
-constants/    theme.ts (colours, spacing, radius)
+  organizer/  EventInfoForm (step 1), ScheduleSeatsForm (step 2),
+              BannerPicker, StepProgress
+assets/
+  banners/    12 preset event banners (original artwork)
+constants/    theme.ts (colours, spacing, radius, font sizes, shadows)
 context/      Reducer + provider + useApp()
-data/         Mock users, events and bookings
+data/         Mock users, events and bookings; banner presets + avatar choices
 hooks/        useSimulatedLoading (fake network delay with cleanup)
 types/        Shared data models (User, AppEvent, Booking, …)
-utils/        Validation, date/seat helpers, ticket check-in rules
+utils/        Validation, date/seat helpers, image helpers, ticket check-in rules
 ```
 
 ---
@@ -138,11 +155,14 @@ context/app-reducer.ts
 context/app-context.tsx
 data/mock-users.ts
 data/mock-events.ts
+data/banners.ts
+assets/banners/*           (12 banner images)
 data/mock-bookings.ts
 hooks/use-simulated-loading.ts
 utils/event-helpers.ts
 utils/validation.ts
-components/ui/*            (all 11 reusable UI components)
+utils/images.ts
+components/ui/*            (all reusable UI components + tab bar options)
 components/events/event-card.tsx
 components/events/date-badge.tsx
 ```
@@ -206,6 +226,8 @@ app/(organizer)/create/index.tsx
 app/(organizer)/create/schedule.tsx
 components/organizer/event-info-form.tsx
 components/organizer/schedule-seats-form.tsx
+components/organizer/banner-picker.tsx
+components/organizer/step-progress.tsx
 ```
 
 Reducer actions: `CREATE_EVENT`, `UPDATE_EVENT`, `SET_EVENT_STATUS`
@@ -218,13 +240,14 @@ Reducer actions: `CREATE_EVENT`, `UPDATE_EVENT`, `SET_EVENT_STATUS`
 | -------------- | -------------------------------------------------------------------------------------------------- | ------------------------------------- |
 | Auth           | Required fields, email format, 8-char password; errors only after touch or Submit                  | `login.tsx`, `register.tsx`           |
 | Auth           | Registration role decides the tab bar after login                                                  | `app/index.tsx`, group layouts        |
-| Auth           | Profile edits update the displayed profile                                                         | `profile-view.tsx`                    |
+| Auth           | Profile edits (name, phone, bio, photo) update the displayed profile                               | `profile-view.tsx`                    |
 | Check-in       | Manual ticket-ID entry checked against mock bookings; valid / already-checked-in / invalid outcomes | `scan/[id].tsx`, `check-in/[ticketId].tsx` |
 | Discovery      | Search + category/date/location filters; empty state when nothing matches                         | `explore/index.tsx`                   |
 | Discovery      | Saving on Event Details shows the event in Saved Events                                            | `event-details-view.tsx`, `saved/index.tsx` |
 | Booking        | Confirm Booking validates name + email, blocks when no seats, opens a QR ticket                    | `explore/confirm/[id].tsx`            |
 | Booking        | My Tickets cancels only after confirmation                                                         | `tickets/index.tsx`                   |
 | Organizer      | Step 1 + step 2 validate title, category, date (not in the past), venue, seats > 0 before draft or publish | `event-info-form.tsx`, `schedule-seats-form.tsx` |
+| Organizer      | Every event needs a banner: built-in gallery or an image link (http/https)                         | `banner-picker.tsx`, `event-info-form.tsx` |
 | Organizer      | Organizer Events filters Published / Drafts / Closed                                               | `events/index.tsx`                    |
 | Organizer      | Manage Event shows registered/remaining seats and opens/closes registration                        | `events/[id].tsx`                     |
 | Organizer      | Attendees searches by name or ticket ID, filters All / Checked in                                  | `events/attendees/[id].tsx`           |
