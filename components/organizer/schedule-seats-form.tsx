@@ -1,18 +1,21 @@
 import { useEffect, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
-import { Colors } from "../../constants/theme";
+import { Ionicons } from "@expo/vector-icons";
+import { Colors, FontSize, Radius, Shadow } from "../../constants/theme";
 import { useApp } from "../../context/app-context";
 import { LOCATIONS } from "../../data/mock-events";
 import { AppEvent, EventLocation, EventStatus } from "../../types/models";
-import { countActiveBookings, isPastDate } from "../../utils/event-helpers";
+import { CATEGORY_ICONS, countActiveBookings, isPastDate } from "../../utils/event-helpers";
 import { validateDate, validateTime } from "../../utils/validation";
 import Banner from "../ui/banner";
+import BannerImage from "../ui/banner-image";
 import Button from "../ui/button";
 import ChipRow from "../ui/chip-row";
 import FormField from "../ui/form-field";
 import Screen from "../ui/screen";
 import ScreenHeader from "../ui/screen-header";
 import { EventInfo } from "./event-info-form";
+import StepProgress from "./step-progress";
 
 interface ScheduleForm {
   date: string;
@@ -101,6 +104,7 @@ export default function ScheduleSeatsForm({
         id: existing?.id ?? "e" + Date.now(),
         title: info.title,
         category: info.category as AppEvent["category"],
+        banner: info.banner,
         description: info.description,
         organizerId: currentUser.id,
         organizerName: info.organizerName,
@@ -142,19 +146,68 @@ export default function ScheduleSeatsForm({
   const isSaving = saveStatus !== null;
   const isDraftOrNew = !existing || existing.status === "draft";
   const hasErrors = submitAttempted && Object.keys(errors).length > 0;
-  const missingStep1 = info.title.length === 0 || info.category === "";
+  const missingStep1 =
+    info.title.length === 0 || info.category === "" || info.banner.length === 0;
+
+  const footer = isDraftOrNew ? (
+    <View style={styles.footerRow}>
+      <Button
+        title="Save draft"
+        variant="secondary"
+        icon="document-outline"
+        onPress={() => save("draft")}
+        loading={saveStatus === "draft"}
+        disabled={isSaving || missingStep1}
+        style={styles.flex}
+      />
+      <Button
+        title="Publish"
+        icon="rocket-outline"
+        onPress={() => save("published")}
+        loading={saveStatus === "published"}
+        disabled={isSaving || missingStep1}
+        style={styles.flex}
+      />
+    </View>
+  ) : (
+    <Button
+      title="Save changes"
+      icon="checkmark"
+      onPress={() => save(existing.status)}
+      loading={isSaving}
+      disabled={missingStep1}
+    />
+  );
 
   return (
-    <Screen scroll>
-      <ScreenHeader
-        title="Schedule & seats"
-        backLabel="Back to event information"
-      />
-      <Text style={styles.step}>Step 2 of 2 · When, where and how many</Text>
+    <Screen scroll footer={footer}>
+      <ScreenHeader title="Schedule & seats" backLabel="Back to event information" />
+      <StepProgress step={2} total={2} label="When, where and how many" />
 
-      {missingStep1 ? (
+      {/* What was filled in on step 1 */}
+      {!missingStep1 ? (
+        <View style={styles.summary}>
+          <BannerImage banner={info.banner} style={styles.summaryImage} />
+          <View style={styles.summaryText}>
+            <View style={styles.summaryCategory}>
+              <Ionicons
+                name={CATEGORY_ICONS[info.category as AppEvent["category"]]}
+                size={13}
+                color={Colors.primary}
+              />
+              <Text style={styles.summaryCategoryText}>{info.category}</Text>
+            </View>
+            <Text style={styles.summaryTitle} numberOfLines={2}>
+              {info.title}
+            </Text>
+            <Text style={styles.summaryOrganizer} numberOfLines={1}>
+              by {info.organizerName}
+            </Text>
+          </View>
+        </View>
+      ) : (
         <Banner type="error" message="Event details from step 1 are missing. Go back and fill them in." />
-      ) : null}
+      )}
       {hasErrors ? (
         <Banner type="error" message="Please fix the highlighted fields before saving." />
       ) : null}
@@ -163,10 +216,11 @@ export default function ScheduleSeatsForm({
         <View style={styles.flex}>
           <FormField
             label="Date"
+            icon="calendar-outline"
             value={formData.date}
             onChangeText={(text) => updateField("date", text)}
             onBlur={() => markTouched("date")}
-            placeholder="e.g. 2026-11-12"
+            placeholder="2026-11-12"
             keyboardType="numbers-and-punctuation"
             error={getFieldError("date")}
           />
@@ -174,10 +228,11 @@ export default function ScheduleSeatsForm({
         <View style={styles.flex}>
           <FormField
             label="Start time"
+            icon="time-outline"
             value={formData.time}
             onChangeText={(text) => updateField("time", text)}
             onBlur={() => markTouched("time")}
-            placeholder="e.g. 10:00"
+            placeholder="10:00"
             keyboardType="numbers-and-punctuation"
             error={getFieldError("time")}
           />
@@ -186,6 +241,7 @@ export default function ScheduleSeatsForm({
 
       <FormField
         label="Venue"
+        icon="business-outline"
         value={formData.venue}
         onChangeText={(text) => updateField("venue", text)}
         onBlur={() => markTouched("venue")}
@@ -195,14 +251,18 @@ export default function ScheduleSeatsForm({
 
       <Text style={styles.label}>Location</Text>
       <ChipRow
-        options={LOCATIONS.map((l) => ({ value: l, label: l }))}
+        options={LOCATIONS.map((l) => ({
+          value: l,
+          label: l,
+          icon: l === "Online" ? ("globe-outline" as const) : ("location-outline" as const),
+        }))}
         selected={formData.location}
         onSelect={(value) => updateField("location", value)}
       />
-      <View style={styles.spacer} />
 
       <FormField
         label="Seat limit"
+        icon="people-outline"
         value={formData.seatLimit}
         onChangeText={(text) => updateField("seatLimit", text)}
         onBlur={() => markTouched("seatLimit")}
@@ -215,46 +275,29 @@ export default function ScheduleSeatsForm({
         }
         error={getFieldError("seatLimit")}
       />
-
-      {isDraftOrNew ? (
-        <>
-          <Button
-            title="Publish event"
-            onPress={() => save("published")}
-            loading={saveStatus === "published"}
-            disabled={isSaving || missingStep1}
-          />
-          <Button
-            title="Save as draft"
-            variant="secondary"
-            onPress={() => save("draft")}
-            loading={saveStatus === "draft"}
-            disabled={isSaving || missingStep1}
-            style={styles.gap}
-          />
-        </>
-      ) : (
-        <Button
-          title="Save changes"
-          onPress={() => save(existing.status)}
-          loading={isSaving}
-          disabled={missingStep1}
-        />
-      )}
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  step: { fontSize: 14, color: Colors.textMuted, marginTop: -10, marginBottom: 18 },
   row: { flexDirection: "row", gap: 12 },
   flex: { flex: 1 },
-  label: {
-    fontSize: 13,
-    color: Colors.textMuted,
-    marginBottom: 8,
-    fontWeight: "500",
+  footerRow: { flexDirection: "row", gap: 10 },
+  label: { fontSize: FontSize.small, color: Colors.text, marginBottom: 8, fontWeight: "600" },
+  summary: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    padding: 10,
+    marginBottom: 18,
+    borderRadius: Radius.xl,
+    backgroundColor: Colors.surface,
+    ...Shadow.card,
   },
-  spacer: { height: 14 },
-  gap: { marginTop: 10 },
+  summaryImage: { width: 92, height: 72, borderRadius: Radius.md },
+  summaryText: { flex: 1 },
+  summaryCategory: { flexDirection: "row", alignItems: "center", gap: 4 },
+  summaryCategoryText: { fontSize: FontSize.caption, fontWeight: "800", color: Colors.primary },
+  summaryTitle: { fontSize: FontSize.body, fontWeight: "800", color: Colors.text, marginTop: 3 },
+  summaryOrganizer: { fontSize: FontSize.caption, color: Colors.textMuted, marginTop: 2 },
 });

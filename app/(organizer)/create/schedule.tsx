@@ -5,6 +5,7 @@ import ScheduleSeatsForm from "../../../components/organizer/schedule-seats-form
 type Step1Params = {
   title?: string;
   category?: string;
+  banner?: string;
   description?: string;
   organizerName?: string;
 };
@@ -15,6 +16,7 @@ export default function ScheduleAndSeatsScreen() {
   const info: EventInfo = {
     title: params.title ?? "",
     category: (params.category ?? "") as EventInfo["category"],
+    banner: params.banner ?? "",
     description: params.description ?? "",
     organizerName: params.organizerName ?? "",
   };

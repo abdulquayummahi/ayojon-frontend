@@ -6,6 +6,7 @@ type EditParams = {
   eventId: string;
   title?: string;
   category?: string;
+  banner?: string;
   description?: string;
   organizerName?: string;
 };
@@ -17,6 +18,7 @@ export default function EditScheduleScreen() {
   const info: EventInfo = {
     title: params.title ?? "",
     category: (params.category ?? "") as EventInfo["category"],
+    banner: params.banner ?? "",
     description: params.description ?? "",
     organizerName: params.organizerName ?? "",
   };

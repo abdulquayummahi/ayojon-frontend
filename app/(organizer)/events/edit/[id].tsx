@@ -27,11 +27,12 @@ export default function EditEventScreen() {
   return (
     <EventInfoForm
       heading={event.status === "draft" ? "Edit draft" : "Edit event"}
-      subtitle="Step 1 of 2 · Event information"
+      subtitle="Banner & event information"
       backLabel="Back"
       initialValues={{
         title: event.title,
         category: event.category,
+        banner: event.banner,
         description: event.description,
         organizerName: event.organizerName,
       }}

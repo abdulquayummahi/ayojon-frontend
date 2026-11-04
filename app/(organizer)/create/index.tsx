@@ -20,11 +20,12 @@ export default function CreateEventScreen() {
       // A new key remounts the form, which clears every field
       key={savedId ?? "new"}
       heading="Create event"
-      subtitle="Step 1 of 2 · Event information"
+      subtitle="Banner & event information"
       successMessage={successMessage}
       initialValues={{
         title: "",
         category: "",
+        banner: "",
         description: "",
         organizerName: currentUser?.name ?? "",
       }}
