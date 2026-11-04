@@ -4,7 +4,7 @@ import { Colors } from "../../constants/theme";
 import { useApp } from "../../context/app-context";
 import { LOCATIONS } from "../../data/mock-events";
 import { AppEvent, EventLocation, EventStatus } from "../../types/models";
-import { countActiveBookings } from "../../utils/event-helpers";
+import { countActiveBookings, isPastDate } from "../../utils/event-helpers";
 import { validateDate, validateTime } from "../../utils/validation";
 import Banner from "../ui/banner";
 import Button from "../ui/button";
@@ -29,9 +29,19 @@ interface ScheduleErrors {
   seatLimit?: string;
 }
 
-function validateSchedule(data: ScheduleForm, minSeats: number): ScheduleErrors {
+function validateSchedule(
+  data: ScheduleForm,
+  minSeats: number,
+  originalDate?: string
+): ScheduleErrors {
   const errors: ScheduleErrors = {};
-  const dateError = validateDate(data.date);
+  let dateError = validateDate(data.date);
+  // New events can't be in the past. An existing event may keep the date it
+  // already has, so an old event can still be edited.
+  const date = data.date.trim();
+  if (!dateError && date !== originalDate && isPastDate(date)) {
+    dateError = "The date can't be in the past.";
+  }
   const timeError = validateTime(data.time);
   if (dateError) errors.date = dateError;
   if (timeError) errors.time = timeError;
@@ -76,9 +86,11 @@ export default function ScheduleSeatsForm({
   const [submitAttempted, setSubmitAttempted] = useState(false);
   const [saveStatus, setSaveStatus] = useState<EventStatus | null>(null);
 
+  const originalDate = existing?.date;
+
   useEffect(() => {
-    setErrors(validateSchedule(formData, minSeats));
-  }, [formData, minSeats]);
+    setErrors(validateSchedule(formData, minSeats, originalDate));
+  }, [formData, minSeats, originalDate]);
 
   // Fake save request
   useEffect(() => {
@@ -105,8 +117,9 @@ export default function ScheduleSeatsForm({
     }, 1000);
 
     return () => clearTimeout(timeoutId);
-  // Runs only when the trigger changes (Submit pressed), not on every
-  // keystroke — so the other values are left out on purpose.
+  // Runs only when saveStatus changes (Publish / Save pressed). formData, info
+  // and existing are read inside but left out on purpose, so typing doesn't
+  // restart the timer.
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [saveStatus]);
 

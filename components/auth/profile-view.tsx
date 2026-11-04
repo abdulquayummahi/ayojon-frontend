@@ -61,6 +61,7 @@ export default function ProfileView() {
     bio: "",
   });
   const [errors, setErrors] = useState<ProfileErrors>({});
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [submitAttempted, setSubmitAttempted] = useState(false);
   const [saveTrigger, setSaveTrigger] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -92,8 +93,9 @@ export default function ProfileView() {
     }, 900);
 
     return () => clearTimeout(timeoutId);
-  // Runs only when the trigger changes (Submit pressed), not on every
-  // keystroke — so the other values are left out on purpose.
+  // Runs only when saveTrigger changes (Save changes pressed). formData and
+  // currentUser are read inside but left out on purpose, so typing doesn't
+  // restart the timer.
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [saveTrigger]);
 
@@ -108,6 +110,7 @@ export default function ProfileView() {
 
   const startEditing = (user: User) => {
     setFormData({ name: user.name, phone: user.phone, bio: user.bio });
+    setTouched({});
     setSubmitAttempted(false);
     setSuccessMessage("");
     setIsEditing(true);
@@ -116,6 +119,14 @@ export default function ProfileView() {
   const updateField = (field: keyof ProfileForm, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
+
+  const markTouched = (field: keyof ProfileForm) => {
+    setTouched((prev) => ({ ...prev, [field]: true }));
+  };
+
+  // Errors appear only after a field is touched or Save is pressed
+  const getFieldError = (field: keyof ProfileErrors) =>
+    touched[field] || submitAttempted ? errors[field] : undefined;
 
   const handleSave = () => {
     setSubmitAttempted(true);
@@ -197,24 +208,27 @@ export default function ProfileView() {
             label="Full name"
             value={formData.name}
             onChangeText={(text) => updateField("name", text)}
-            error={submitAttempted ? errors.name : undefined}
+            onBlur={() => markTouched("name")}
+            error={getFieldError("name")}
           />
           <FormField
             label="Phone (optional)"
             value={formData.phone}
             onChangeText={(text) => updateField("phone", text)}
+            onBlur={() => markTouched("phone")}
             keyboardType="phone-pad"
             placeholder="01711-000111"
-            error={submitAttempted ? errors.phone : undefined}
+            error={getFieldError("phone")}
           />
           <FormField
             label="Bio (optional)"
             value={formData.bio}
             onChangeText={(text) => updateField("bio", text)}
+            onBlur={() => markTouched("bio")}
             multiline
             placeholder="A short line about you"
             hint={`${formData.bio.trim().length}/160`}
-            error={submitAttempted ? errors.bio : undefined}
+            error={getFieldError("bio")}
           />
           <View style={styles.row}>
             <Button

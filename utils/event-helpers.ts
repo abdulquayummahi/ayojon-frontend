@@ -11,6 +11,13 @@ export function parseEventDate(date: string): Date {
   return new Date(y, m - 1, d);
 }
 
+// True if the date is before today (today itself is allowed)
+export function isPastDate(date: string): boolean {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return parseEventDate(date) < today;
+}
+
 export function formatTime(time: string): string {
   const [h, m] = time.split(":").map(Number);
   const suffix = h >= 12 ? "PM" : "AM";
