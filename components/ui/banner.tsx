@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { StyleSheet, Text, View } from "react-native";
-import { Colors, Radius } from "../../constants/theme";
+import { Colors, FontSize, Radius } from "../../constants/theme";
 
 type BannerType = "success" | "error" | "info";
 
@@ -28,6 +28,7 @@ const CONFIG = {
 };
 
 // Inline message used for form errors and success feedback.
+// (Named "Banner" before event banner images existed — it is a message strip.)
 export default function Banner({ type, message }: BannerProps) {
   const config = CONFIG[type];
   return (
@@ -45,10 +46,11 @@ const styles = StyleSheet.create({
   banner: {
     flexDirection: "row",
     alignItems: "center",
-    padding: 12,
-    borderRadius: Radius.md,
-    marginBottom: 16,
-    gap: 8,
+    gap: 10,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    borderRadius: Radius.lg,
+    marginBottom: 14,
   },
-  text: { flex: 1, fontSize: 14, fontWeight: "600" },
+  text: { flex: 1, fontSize: FontSize.small, fontWeight: "600", lineHeight: 19 },
 });

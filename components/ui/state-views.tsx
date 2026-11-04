@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { ComponentProps } from "react";
 import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
-import { Colors } from "../../constants/theme";
+import { Colors, FontSize } from "../../constants/theme";
 import Button from "./button";
 
 type IconName = ComponentProps<typeof Ionicons>["name"];
@@ -35,7 +35,9 @@ export function EmptyState({
   return (
     <View style={styles.center}>
       <View style={styles.iconCircle}>
-        <Ionicons name={icon} size={30} color={Colors.primary} />
+        <View style={styles.iconInner}>
+          <Ionicons name={icon} size={30} color={Colors.primary} />
+        </View>
       </View>
       <Text style={styles.title}>{title}</Text>
       <Text style={styles.message}>{message}</Text>
@@ -44,6 +46,7 @@ export function EmptyState({
           title={actionLabel}
           onPress={onAction}
           variant="secondary"
+          size="sm"
           style={styles.action}
         />
       ) : null}
@@ -68,7 +71,9 @@ export function ErrorState({
   return (
     <View style={styles.center}>
       <View style={[styles.iconCircle, styles.errorCircle]}>
-        <Ionicons name="alert-circle-outline" size={30} color={Colors.danger} />
+        <View style={[styles.iconInner, styles.errorInner]}>
+          <Ionicons name="alert-circle-outline" size={30} color={Colors.danger} />
+        </View>
       </View>
       <Text style={styles.title}>{title}</Text>
       <Text style={styles.message}>{message}</Text>
@@ -77,6 +82,7 @@ export function ErrorState({
           title={actionLabel}
           onPress={onAction}
           variant="secondary"
+          size="sm"
           style={styles.action}
         />
       ) : null}
@@ -93,28 +99,37 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
   },
   iconCircle: {
+    width: 96,
+    height: 96,
+    borderRadius: 48,
+    backgroundColor: Colors.primarySoft,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 18,
+  },
+  iconInner: {
     width: 64,
     height: 64,
     borderRadius: 32,
     backgroundColor: Colors.primaryLight,
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: 14,
   },
-  errorCircle: { backgroundColor: Colors.dangerLight },
+  errorCircle: { backgroundColor: "#FFF5F5" },
+  errorInner: { backgroundColor: Colors.dangerLight },
   title: {
-    fontSize: 17,
-    fontWeight: "700",
+    fontSize: FontSize.lead,
+    fontWeight: "800",
     color: Colors.text,
-    marginBottom: 6,
     textAlign: "center",
   },
   message: {
-    fontSize: 14,
+    fontSize: FontSize.small,
     color: Colors.textMuted,
     textAlign: "center",
-    marginTop: 4,
+    marginTop: 8,
     lineHeight: 20,
+    maxWidth: 280,
   },
-  action: { marginTop: 18, alignSelf: "stretch" },
+  action: { marginTop: 18 },
 });

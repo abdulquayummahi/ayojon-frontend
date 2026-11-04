@@ -1,5 +1,6 @@
+import { Ionicons } from "@expo/vector-icons";
 import { Modal, StyleSheet, Text, View } from "react-native";
-import { Colors, Radius } from "../../constants/theme";
+import { Colors, FontSize, Radius, Shadow } from "../../constants/theme";
 import Button from "./button";
 
 interface ConfirmDialogProps {
@@ -34,6 +35,13 @@ export default function ConfirmDialog({
     >
       <View style={styles.backdrop}>
         <View style={styles.card}>
+          <View style={[styles.icon, destructive && styles.iconDanger]}>
+            <Ionicons
+              name={destructive ? "warning-outline" : "help-circle-outline"}
+              size={26}
+              color={destructive ? Colors.danger : Colors.primary}
+            />
+          </View>
           <Text style={styles.title}>{title}</Text>
           <Text style={styles.message}>{message}</Text>
           <View style={styles.actions}>
@@ -59,22 +67,43 @@ export default function ConfirmDialog({
 const styles = StyleSheet.create({
   backdrop: {
     flex: 1,
-    backgroundColor: "rgba(10, 10, 30, 0.45)",
+    backgroundColor: Colors.overlay,
+    alignItems: "center",
     justifyContent: "center",
     padding: 24,
   },
   card: {
+    width: "100%",
+    maxWidth: 380,
     backgroundColor: Colors.surface,
-    borderRadius: Radius.lg,
-    padding: 20,
+    borderRadius: Radius.xl,
+    padding: 22,
+    alignItems: "center",
+    ...Shadow.raised,
   },
-  title: { fontSize: 18, fontWeight: "800", color: Colors.text },
+  icon: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: Colors.primaryLight,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 14,
+  },
+  iconDanger: { backgroundColor: Colors.dangerLight },
+  title: {
+    fontSize: FontSize.title,
+    fontWeight: "800",
+    color: Colors.text,
+    textAlign: "center",
+  },
   message: {
-    fontSize: 14,
+    fontSize: FontSize.body,
     color: Colors.textMuted,
+    textAlign: "center",
     marginTop: 8,
-    lineHeight: 20,
+    lineHeight: 21,
   },
-  actions: { flexDirection: "row", gap: 10, marginTop: 20 },
+  actions: { flexDirection: "row", gap: 10, marginTop: 22, alignSelf: "stretch" },
   button: { flex: 1 },
 });

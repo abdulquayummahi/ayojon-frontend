@@ -1,9 +1,14 @@
+import { Ionicons } from "@expo/vector-icons";
+import { ComponentProps } from "react";
 import { ScrollView, StyleSheet } from "react-native";
 import Chip from "./chip";
+
+type IconName = ComponentProps<typeof Ionicons>["name"];
 
 interface ChipOption<T extends string> {
   value: T;
   label: string;
+  icon?: IconName;
 }
 
 interface ChipRowProps<T extends string> {
@@ -24,11 +29,13 @@ export default function ChipRow<T extends string>({
       showsHorizontalScrollIndicator={false}
       style={styles.scroll}
       contentContainerStyle={styles.row}
+      keyboardShouldPersistTaps="handled"
     >
       {options.map((option) => (
         <Chip
           key={option.value}
           label={option.label}
+          icon={option.icon}
           selected={option.value === selected}
           onPress={() => onSelect(option.value)}
         />
@@ -38,7 +45,6 @@ export default function ChipRow<T extends string>({
 }
 
 const styles = StyleSheet.create({
-  // Don't let the row grow to fill the screen's height
-  scroll: { flexGrow: 0, flexShrink: 0 },
-  row: { paddingVertical: 4, alignItems: "center" },
+  scroll: { flexGrow: 0, marginBottom: 14 },
+  row: { paddingRight: 8 },
 });
