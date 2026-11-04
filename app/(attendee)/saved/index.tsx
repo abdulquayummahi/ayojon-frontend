@@ -1,15 +1,13 @@
-import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
-import { FlatList, Pressable, StyleSheet, Text, View } from "react-native";
+import { FlatList, StyleSheet } from "react-native";
 import EventCard from "../../../components/events/event-card";
 import Screen from "../../../components/ui/screen";
 import ScreenHeader from "../../../components/ui/screen-header";
 import { EmptyState, LoadingState } from "../../../components/ui/state-views";
-import { Colors } from "../../../constants/theme";
 import { useApp } from "../../../context/app-context";
 import { useSimulatedLoading } from "../../../hooks/use-simulated-loading";
 import { AppEvent } from "../../../types/models";
-import { seatsLeft } from "../../../utils/event-helpers";
+import { countActiveBookings, seatsLeft } from "../../../utils/event-helpers";
 
 export default function SavedEventsScreen() {
   const { state, currentUser, dispatch } = useApp();
@@ -33,7 +31,14 @@ export default function SavedEventsScreen() {
 
   return (
     <Screen>
-      <ScreenHeader title="Saved events" subtitle="Events you want to remember" />
+      <ScreenHeader
+        title="Saved events"
+        subtitle={
+          savedEvents.length > 0
+            ? `${savedEvents.length} saved · tap the bookmark to remove`
+            : "Events you want to remember"
+        }
+      />
 
       {isLoading ? (
         <LoadingState message="Loading saved events…" />
@@ -46,47 +51,34 @@ export default function SavedEventsScreen() {
           renderItem={({ item }) => {
             const left = seatsLeft(item, state.bookings);
             return (
-              <View>
-                <EventCard
-                  event={item}
-                  footerText={
-                    item.status === "closed"
-                      ? "Registration closed"
-                      : left === 0
-                        ? "Fully booked"
-                        : `${left} seats left`
-                  }
-                  highlight={item.status === "closed" || left === 0 ? "danger" : undefined}
-                  actionLabel="View event"
-                  onPress={() =>
-                    router.push({ pathname: "/saved/[id]", params: { id: item.id } })
-                  }
-                />
-                <Pressable
-                  accessibilityRole="button"
-                  accessibilityLabel={`Remove ${item.title} from saved`}
-                  onPress={() => removeSaved(item.id)}
-                  style={styles.remove}
-                  hitSlop={8}
-                >
-                  <Ionicons name="bookmark" size={22} color={Colors.primary} />
-                </Pressable>
-              </View>
+              <EventCard
+                event={item}
+                footerText={
+                  item.status === "closed"
+                    ? "Registration closed"
+                    : left === 0
+                      ? "Fully booked"
+                      : `${left} seats left`
+                }
+                highlight={item.status === "closed" || left === 0 ? "danger" : undefined}
+                progress={countActiveBookings(state.bookings, item.id) / item.seatLimit}
+                actionLabel="View event"
+                isSaved
+                onToggleSave={() => removeSaved(item.id)}
+                onPress={() =>
+                  router.push({ pathname: "/saved/[id]", params: { id: item.id } })
+                }
+              />
             );
           }}
           ListEmptyComponent={
             <EmptyState
               icon="bookmark-outline"
               title="No saved events yet"
-              message="Tap “Save event” on any event to keep it here."
+              message="Tap the bookmark on any event to keep it here."
               actionLabel="Explore events"
               onAction={() => router.navigate("/explore")}
             />
-          }
-          ListFooterComponent={
-            savedEvents.length > 0 ? (
-              <Text style={styles.hint}>Tap the bookmark to remove an event.</Text>
-            ) : null
           }
         />
       )}
@@ -95,7 +87,5 @@ export default function SavedEventsScreen() {
 }
 
 const styles = StyleSheet.create({
-  list: { paddingBottom: 24, flexGrow: 1 },
-  remove: { position: "absolute", top: 16, right: 16 },
-  hint: { fontSize: 12, color: Colors.textLight, textAlign: "center" },
+  list: { paddingBottom: 16, flexGrow: 1 },
 });

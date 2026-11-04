@@ -1,18 +1,20 @@
+import { Ionicons } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
-import DateBadge from "../../../../components/events/date-badge";
 import Banner from "../../../../components/ui/banner";
+import BannerImage from "../../../../components/ui/banner-image";
 import Button from "../../../../components/ui/button";
 import Card from "../../../../components/ui/card";
 import FormField from "../../../../components/ui/form-field";
 import Screen from "../../../../components/ui/screen";
 import ScreenHeader from "../../../../components/ui/screen-header";
 import { ErrorState } from "../../../../components/ui/state-views";
-import { Colors } from "../../../../constants/theme";
+import { Colors, FontSize, Radius } from "../../../../constants/theme";
 import { useApp } from "../../../../context/app-context";
 import { Booking } from "../../../../types/models";
 import {
+  formatShortDate,
   generateTicketId,
   seatsLeft,
 } from "../../../../utils/event-helpers";
@@ -142,26 +144,56 @@ export default function ConfirmBookingScreen() {
   };
 
   return (
-    <Screen scroll>
-      <ScreenHeader title="Confirm booking" backLabel="Back to event" />
+    <Screen
+      scroll
+      footer={
+        <Button
+          title="Confirm booking"
+          icon="checkmark-circle-outline"
+          onPress={handleConfirm}
+          loading={isSubmitting}
+          disabled={isBlocked}
+        />
+      }
+    >
+      <ScreenHeader title="Confirm booking" subtitle="Check the details below" backLabel="Back to event" />
 
-      <Card>
-        <View style={styles.eventTop}>
-          <DateBadge date={event.date} />
-          <View style={styles.eventTopText}>
-            <Text style={styles.category}>{event.category.toUpperCase()}</Text>
-            <Text style={styles.location}>{event.location}</Text>
+      <Card style={styles.eventCard}>
+        <BannerImage banner={event.banner} style={styles.eventImage} />
+        <View style={styles.eventBody}>
+          <Text style={styles.category}>{event.category.toUpperCase()}</Text>
+          <Text style={styles.eventTitle} numberOfLines={2}>
+            {event.title}
+          </Text>
+          <View style={styles.metaRow}>
+            <Ionicons name="time-outline" size={14} color={Colors.textMuted} />
+            <Text style={styles.muted}>{formatShortDate(event)}</Text>
+          </View>
+          <View style={styles.metaRow}>
+            <Ionicons name="location-outline" size={14} color={Colors.textMuted} />
+            <Text style={styles.muted} numberOfLines={1}>
+              {event.venue}
+            </Text>
           </View>
         </View>
-        <Text style={styles.eventTitle}>{event.title}</Text>
-        <Text style={styles.muted}>{event.venue}</Text>
-        <View style={styles.eventFooter}>
-          <Text style={[styles.muted, left === 0 && styles.danger]}>
-            {left === 0 ? "No seats left" : `${left} seats left`}
-          </Text>
-          <Text style={styles.seat}>1 seat</Text>
-        </View>
       </Card>
+
+      <View style={styles.summary}>
+        <View style={styles.summaryItem}>
+          <Text style={styles.summaryLabel}>Seats</Text>
+          <Text style={styles.summaryValue}>1</Text>
+        </View>
+        <View style={styles.summaryDivider} />
+        <View style={styles.summaryItem}>
+          <Text style={styles.summaryLabel}>Price</Text>
+          <Text style={styles.summaryValue}>Free</Text>
+        </View>
+        <View style={styles.summaryDivider} />
+        <View style={styles.summaryItem}>
+          <Text style={styles.summaryLabel}>Left</Text>
+          <Text style={[styles.summaryValue, left === 0 && styles.danger]}>{left}</Text>
+        </View>
+      </View>
 
       {isBlocked ? (
         <Banner
@@ -177,7 +209,8 @@ export default function ConfirmBookingScreen() {
 
       <Text style={styles.sectionTitle}>Your registration</Text>
       <FormField
-        label="Attendee"
+        label="Attendee name"
+        icon="person-outline"
         value={formData.name}
         onChangeText={(text) => updateField("name", text)}
         onBlur={() => setTouched((prev) => ({ ...prev, name: true }))}
@@ -186,6 +219,7 @@ export default function ConfirmBookingScreen() {
       />
       <FormField
         label="Email"
+        icon="mail-outline"
         value={formData.email}
         onChangeText={(text) => updateField("email", text)}
         onBlur={() => setTouched((prev) => ({ ...prev, email: true }))}
@@ -194,34 +228,41 @@ export default function ConfirmBookingScreen() {
         autoCapitalize="none"
         error={getFieldError("email")}
       />
-      <Text style={styles.note}>One seat per account. No payment required.</Text>
-
-      <Button
-        title="Confirm booking"
-        onPress={handleConfirm}
-        loading={isSubmitting}
-        disabled={isBlocked}
-      />
+      <View style={styles.noteRow}>
+        <Ionicons name="shield-checkmark-outline" size={16} color={Colors.success} />
+        <Text style={styles.note}>One seat per account. Your QR ticket opens right after booking.</Text>
+      </View>
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  eventTop: { flexDirection: "row", alignItems: "center", marginBottom: 12 },
-  eventTopText: { marginLeft: 12 },
-  category: { fontSize: 11, fontWeight: "800", color: Colors.primary },
-  location: { fontSize: 14, fontWeight: "600", color: Colors.text, marginTop: 2 },
-  eventTitle: { fontSize: 17, fontWeight: "800", color: Colors.text },
-  muted: { fontSize: 13, color: Colors.textMuted, marginTop: 4 },
-  danger: { color: Colors.danger, fontWeight: "600" },
-  eventFooter: { flexDirection: "row", justifyContent: "space-between" },
-  seat: { fontSize: 13, color: Colors.primary, fontWeight: "700", marginTop: 4 },
+  eventCard: { flexDirection: "row", padding: 10, gap: 12, alignItems: "center" },
+  eventImage: { width: 96, height: 96, borderRadius: Radius.lg },
+  eventBody: { flex: 1 },
+  category: { fontSize: 11, fontWeight: "800", color: Colors.primary, letterSpacing: 0.5 },
+  eventTitle: { fontSize: FontSize.body, fontWeight: "800", color: Colors.text, marginTop: 3, marginBottom: 4 },
+  metaRow: { flexDirection: "row", alignItems: "center", gap: 5, marginTop: 2 },
+  muted: { flex: 1, fontSize: FontSize.caption, color: Colors.textMuted },
+  danger: { color: Colors.danger },
+  summary: {
+    flexDirection: "row",
+    backgroundColor: Colors.primarySoft,
+    borderRadius: Radius.lg,
+    paddingVertical: 12,
+    marginBottom: 16,
+  },
+  summaryItem: { flex: 1, alignItems: "center" },
+  summaryLabel: { fontSize: FontSize.caption, color: Colors.textMuted, fontWeight: "600" },
+  summaryValue: { fontSize: FontSize.lead, color: Colors.text, fontWeight: "800", marginTop: 2 },
+  summaryDivider: { width: 1, backgroundColor: Colors.primaryLight },
   sectionTitle: {
-    fontSize: 18,
+    fontSize: FontSize.lead,
     fontWeight: "800",
     color: Colors.text,
-    marginTop: 8,
+    marginTop: 4,
     marginBottom: 12,
   },
-  note: { fontSize: 13, color: Colors.textMuted, marginBottom: 20 },
+  noteRow: { flexDirection: "row", alignItems: "center", gap: 8 },
+  note: { flex: 1, fontSize: FontSize.caption, color: Colors.textMuted },
 });

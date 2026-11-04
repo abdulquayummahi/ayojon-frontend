@@ -11,16 +11,18 @@ import {
   View,
 } from "react-native";
 import EventCard from "../../../components/events/event-card";
+import Avatar from "../../../components/ui/avatar";
 import ChipRow from "../../../components/ui/chip-row";
 import Screen from "../../../components/ui/screen";
-import ScreenHeader from "../../../components/ui/screen-header";
 import { EmptyState, LoadingState } from "../../../components/ui/state-views";
-import { Colors, Radius } from "../../../constants/theme";
+import { Colors, FontSize, Radius, Shadow } from "../../../constants/theme";
 import { useApp } from "../../../context/app-context";
 import { CATEGORIES, LOCATIONS } from "../../../data/mock-events";
 import { useSimulatedLoading } from "../../../hooks/use-simulated-loading";
 import { EventCategory, EventLocation } from "../../../types/models";
 import {
+  CATEGORY_ICONS,
+  countActiveBookings,
   DATE_FILTER_LABELS,
   DateFilter,
   matchesDateFilter,
@@ -32,8 +34,8 @@ type CategoryFilter = "All" | EventCategory;
 type LocationFilter = "All" | EventLocation;
 
 const CATEGORY_OPTIONS = [
-  { value: "All" as CategoryFilter, label: "All" },
-  ...CATEGORIES.map((c) => ({ value: c as CategoryFilter, label: c })),
+  { value: "All" as CategoryFilter, label: "All", icon: "apps-outline" as const },
+  ...CATEGORIES.map((c) => ({ value: c as CategoryFilter, label: c, icon: CATEGORY_ICONS[c] })),
 ];
 const LOCATION_OPTIONS = [
   { value: "All" as LocationFilter, label: "All locations" },
@@ -44,7 +46,7 @@ const DATE_OPTIONS = (Object.keys(DATE_FILTER_LABELS) as DateFilter[]).map(
 );
 
 export default function ExploreScreen() {
-  const { state } = useApp();
+  const { state, currentUser, dispatch } = useApp();
 
   // Search and filters are local UI state — only this screen needs them
   const [query, setQuery] = useState("");
@@ -85,50 +87,75 @@ export default function ExploreScreen() {
     setLocation("All");
   };
 
-  return (
-    <Screen>
-      <ScreenHeader
-        title="Find your next event"
-        subtitle="Discover campus & community events"
-      />
+  const isSaved = (eventId: string) =>
+    state.saved.some((s) => s.userId === currentUser?.id && s.eventId === eventId);
 
-      <View style={styles.searchBox}>
-        <Ionicons name="search" size={18} color={Colors.textLight} />
-        <TextInput
-          value={query}
-          onChangeText={setQuery}
-          placeholder="Search events, clubs or venues…"
-          placeholderTextColor={Colors.textLight}
-          style={styles.searchInput}
-          returnKeyType="search"
-        />
-        {query.length > 0 ? (
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Clear search"
-            onPress={() => setQuery("")}
-            hitSlop={8}
-          >
-            <Ionicons name="close-circle" size={18} color={Colors.textLight} />
-          </Pressable>
-        ) : null}
+  const toggleSaved = (eventId: string) => {
+    if (!currentUser) return;
+    dispatch({ type: "TOGGLE_SAVED", payload: { userId: currentUser.id, eventId } });
+  };
+
+  const firstName = currentUser?.name.split(" ")[0] ?? "there";
+
+  // Everything above the cards scrolls together with the list
+  const header = (
+    <View>
+      <View style={styles.topRow}>
+        <View style={styles.flex}>
+          <Text style={styles.hello}>Hi, {firstName} 👋</Text>
+          <Text style={styles.title}>Find your next event</Text>
+        </View>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Open profile"
+          onPress={() => router.navigate("/profile")}
+        >
+          <Avatar name={currentUser?.name ?? "?"} uri={currentUser?.avatarUrl} size={46} />
+        </Pressable>
       </View>
 
-      <ChipRow options={CATEGORY_OPTIONS} selected={category} onSelect={setCategory} />
-
-      <Pressable
-        accessibilityRole="button"
-        onPress={() => setShowFilters((prev) => !prev)}
-        style={styles.filterToggle}
-      >
-        <Text style={styles.filterSummary}>
-          Date: {DATE_FILTER_LABELS[dateFilter]} · Location:{" "}
-          {location === "All" ? "All" : location}
-        </Text>
-        <Text style={styles.filterLink}>
-          {showFilters ? "Hide filters" : `Filters${activeFilterCount ? ` (${activeFilterCount})` : ""}`}
-        </Text>
-      </Pressable>
+      <View style={styles.searchRow}>
+        <View style={styles.searchBox}>
+          <Ionicons name="search" size={19} color={Colors.textLight} />
+          <TextInput
+            value={query}
+            onChangeText={setQuery}
+            placeholder="Search events, clubs or venues…"
+            placeholderTextColor={Colors.textLight}
+            style={styles.searchInput}
+            returnKeyType="search"
+            accessibilityLabel="Search events"
+          />
+          {query.length > 0 ? (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Clear search"
+              onPress={() => setQuery("")}
+              hitSlop={8}
+            >
+              <Ionicons name="close-circle" size={19} color={Colors.textLight} />
+            </Pressable>
+          ) : null}
+        </View>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={showFilters ? "Hide filters" : "Show date and location filters"}
+          accessibilityState={{ expanded: showFilters }}
+          onPress={() => setShowFilters((prev) => !prev)}
+          style={[styles.filterButton, (showFilters || activeFilterCount > 0) && styles.filterButtonActive]}
+        >
+          <Ionicons
+            name="options-outline"
+            size={21}
+            color={showFilters || activeFilterCount > 0 ? Colors.white : Colors.text}
+          />
+          {activeFilterCount > 0 ? (
+            <View style={styles.filterCount}>
+              <Text style={styles.filterCountText}>{activeFilterCount}</Text>
+            </View>
+          ) : null}
+        </Pressable>
+      </View>
 
       {showFilters ? (
         <View style={styles.filterPanel}>
@@ -139,47 +166,62 @@ export default function ExploreScreen() {
         </View>
       ) : null}
 
-      {isLoading ? (
-        <LoadingState message="Loading events…" />
-      ) : (
-        <FlatList
-          data={filteredEvents}
-          keyExtractor={(item) => item.id}
-          contentContainerStyle={styles.list}
-          showsVerticalScrollIndicator={false}
-          refreshControl={
-            <RefreshControl
-              refreshing={false}
-              onRefresh={() => setReloadKey((k) => k + 1)}
-              tintColor={Colors.primary}
+      <ChipRow options={CATEGORY_OPTIONS} selected={category} onSelect={setCategory} />
+
+      {!isLoading ? (
+        <View style={styles.countRow}>
+          <Text style={styles.count}>
+            {filteredEvents.length} event{filteredEvents.length === 1 ? "" : "s"}
+          </Text>
+          <Text style={styles.sort}>Soonest first</Text>
+        </View>
+      ) : null}
+    </View>
+  );
+
+  return (
+    <Screen>
+      <FlatList
+        data={isLoading ? [] : filteredEvents}
+        keyExtractor={(item) => item.id}
+        contentContainerStyle={styles.list}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+        refreshControl={
+          <RefreshControl
+            refreshing={false}
+            onRefresh={() => setReloadKey((k) => k + 1)}
+            tintColor={Colors.primary}
+          />
+        }
+        ListHeaderComponent={header}
+        renderItem={({ item }) => {
+          const left = seatsLeft(item, state.bookings);
+          const footer =
+            item.status === "closed"
+              ? "Registration closed"
+              : left === 0
+                ? "Fully booked"
+                : `${left} seats left`;
+          return (
+            <EventCard
+              event={item}
+              footerText={footer}
+              highlight={item.status === "closed" || left === 0 ? "danger" : undefined}
+              progress={countActiveBookings(state.bookings, item.id) / item.seatLimit}
+              actionLabel="View event"
+              isSaved={isSaved(item.id)}
+              onToggleSave={() => toggleSaved(item.id)}
+              onPress={() =>
+                router.push({ pathname: "/explore/[id]", params: { id: item.id } })
+              }
             />
-          }
-          ListHeaderComponent={
-            <Text style={styles.count}>
-              {filteredEvents.length} event{filteredEvents.length === 1 ? "" : "s"} found
-            </Text>
-          }
-          renderItem={({ item }) => {
-            const left = seatsLeft(item, state.bookings);
-            const footer =
-              item.status === "closed"
-                ? "Registration closed"
-                : left === 0
-                  ? "Fully booked"
-                  : `${left} seats left`;
-            return (
-              <EventCard
-                event={item}
-                footerText={footer}
-                highlight={item.status === "closed" || left === 0 ? "danger" : undefined}
-                actionLabel="View event"
-                onPress={() =>
-                  router.push({ pathname: "/explore/[id]", params: { id: item.id } })
-                }
-              />
-            );
-          }}
-          ListEmptyComponent={
+          );
+        }}
+        ListEmptyComponent={
+          isLoading ? (
+            <LoadingState message="Loading events…" />
+          ) : (
             <EmptyState
               icon="search-outline"
               title="No events match"
@@ -187,49 +229,82 @@ export default function ExploreScreen() {
               actionLabel="Clear search & filters"
               onAction={clearFilters}
             />
-          }
-        />
-      )}
+          )
+        }
+      />
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
+  flex: { flex: 1 },
+  list: { paddingBottom: 16 },
+  topRow: { flexDirection: "row", alignItems: "center", marginTop: 8, marginBottom: 18 },
+  hello: { fontSize: FontSize.body, color: Colors.textMuted, fontWeight: "600" },
+  title: {
+    fontSize: FontSize.heading,
+    fontWeight: "800",
+    color: Colors.text,
+    marginTop: 2,
+    letterSpacing: -0.5,
+  },
+  searchRow: { flexDirection: "row", gap: 10, marginBottom: 14 },
   searchBox: {
+    flex: 1,
     flexDirection: "row",
     alignItems: "center",
+    gap: 10,
+    height: 52,
+    paddingHorizontal: 16,
+    borderRadius: Radius.lg,
     backgroundColor: Colors.surface,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    borderRadius: Radius.md,
-    paddingHorizontal: 12,
-    marginBottom: 12,
-    gap: 8,
+    ...Shadow.card,
   },
-  searchInput: { flex: 1, paddingVertical: 12, fontSize: 15, color: Colors.text },
-  filterToggle: {
+  searchInput: { flex: 1, fontSize: FontSize.body, color: Colors.text },
+  filterButton: {
+    width: 52,
+    height: 52,
+    borderRadius: Radius.lg,
+    backgroundColor: Colors.surface,
+    alignItems: "center",
+    justifyContent: "center",
+    ...Shadow.card,
+  },
+  filterButtonActive: { backgroundColor: Colors.primary },
+  filterCount: {
+    position: "absolute",
+    top: 8,
+    right: 8,
+    minWidth: 16,
+    height: 16,
+    borderRadius: 8,
+    backgroundColor: Colors.white,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  filterCountText: { fontSize: 10, fontWeight: "800", color: Colors.primary },
+  filterPanel: {
+    padding: 14,
+    paddingBottom: 0,
+    borderRadius: Radius.xl,
+    backgroundColor: Colors.surface,
+    marginBottom: 14,
+    ...Shadow.card,
+  },
+  filterLabel: {
+    fontSize: FontSize.caption,
+    fontWeight: "800",
+    color: Colors.textMuted,
+    marginBottom: 8,
+    textTransform: "uppercase",
+    letterSpacing: 0.6,
+  },
+  countRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginTop: 10,
-    marginBottom: 8,
+    marginBottom: 12,
   },
-  filterSummary: { fontSize: 12, color: Colors.textMuted, flexShrink: 1 },
-  filterLink: { fontSize: 13, color: Colors.primary, fontWeight: "700" },
-  filterPanel: {
-    backgroundColor: Colors.surface,
-    borderRadius: Radius.md,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    padding: 12,
-    marginBottom: 8,
-  },
-  filterLabel: {
-    fontSize: 12,
-    fontWeight: "700",
-    color: Colors.textMuted,
-    marginTop: 4,
-  },
-  list: { paddingTop: 8, paddingBottom: 24, flexGrow: 1 },
-  count: { fontSize: 13, color: Colors.textMuted, marginBottom: 10 },
+  count: { fontSize: FontSize.lead, fontWeight: "800", color: Colors.text },
+  sort: { fontSize: FontSize.caption, color: Colors.textMuted, fontWeight: "600" },
 });

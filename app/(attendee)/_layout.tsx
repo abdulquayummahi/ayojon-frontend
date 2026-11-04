@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Redirect, Tabs } from "expo-router";
-import { Colors } from "../../constants/theme";
+import { TAB_SCREEN_OPTIONS } from "../../components/ui/tab-options";
 import { useApp } from "../../context/app-context";
 
 // Attendee tab bar: Explore, Saved, Tickets, Profile.
@@ -13,18 +13,18 @@ export default function AttendeeTabsLayout() {
 
   return (
     <Tabs
-      screenOptions={{
-        headerShown: false,
-        tabBarActiveTintColor: Colors.primary,
-        tabBarInactiveTintColor: Colors.textLight,
-      }}
+      screenOptions={TAB_SCREEN_OPTIONS}
     >
       <Tabs.Screen
         name="explore"
         options={{
           title: "Explore",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="compass-outline" size={size} color={color} />
+          tabBarIcon: ({ color, size, focused }) => (
+            <Ionicons
+              name={focused ? "compass" : "compass-outline"}
+              size={size}
+              color={color}
+            />
           ),
         }}
       />
@@ -32,8 +32,12 @@ export default function AttendeeTabsLayout() {
         name="saved"
         options={{
           title: "Saved",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="bookmark-outline" size={size} color={color} />
+          tabBarIcon: ({ color, size, focused }) => (
+            <Ionicons
+              name={focused ? "bookmark" : "bookmark-outline"}
+              size={size}
+              color={color}
+            />
           ),
         }}
       />
@@ -41,8 +45,12 @@ export default function AttendeeTabsLayout() {
         name="tickets"
         options={{
           title: "Tickets",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="ticket-outline" size={size} color={color} />
+          tabBarIcon: ({ color, size, focused }) => (
+            <Ionicons
+              name={focused ? "ticket" : "ticket-outline"}
+              size={size}
+              color={color}
+            />
           ),
         }}
       />
@@ -50,8 +58,12 @@ export default function AttendeeTabsLayout() {
         name="profile"
         options={{
           title: "Profile",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="person-circle-outline" size={size} color={color} />
+          tabBarIcon: ({ color, size, focused }) => (
+            <Ionicons
+              name={focused ? "person-circle" : "person-circle-outline"}
+              size={size}
+              color={color}
+            />
           ),
         }}
       />

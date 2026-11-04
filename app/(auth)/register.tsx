@@ -1,3 +1,4 @@
+import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useEffect, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
@@ -6,7 +7,7 @@ import Button from "../../components/ui/button";
 import FormField from "../../components/ui/form-field";
 import Screen from "../../components/ui/screen";
 import ScreenHeader from "../../components/ui/screen-header";
-import { Colors, Radius } from "../../constants/theme";
+import { Colors, FontSize, Radius, Shadow } from "../../constants/theme";
 import { useApp } from "../../context/app-context";
 import { Role, User } from "../../types/models";
 import {
@@ -46,9 +47,19 @@ function validateForm(data: RegisterForm, users: User[]): RegisterErrors {
   return errors;
 }
 
-const ROLE_OPTIONS: { value: Role; label: string }[] = [
-  { value: "attendee", label: "Attend events" },
-  { value: "organizer", label: "Organize events" },
+const ROLE_OPTIONS = [
+  {
+    value: "attendee" as Role,
+    label: "Attend events",
+    description: "Discover events, save them and book seats.",
+    icon: "ticket-outline" as const,
+  },
+  {
+    value: "organizer" as Role,
+    label: "Organize events",
+    description: "Create events, manage seats and check people in.",
+    icon: "megaphone-outline" as const,
+  },
 ];
 
 export default function RegisterScreen() {
@@ -99,6 +110,7 @@ export default function RegisterScreen() {
         role,
         phone: "",
         bio: "",
+        avatarUrl: "", // a photo can be added later from the Profile screen
       };
 
       setIsSubmitting(false);
@@ -115,18 +127,61 @@ export default function RegisterScreen() {
   }, [submitTrigger]);
 
   return (
-    <Screen scroll>
+    <Screen
+      scroll
+      safeBottom
+      footer={
+        <Button
+          title="Create account"
+          icon="person-add-outline"
+          onPress={handleSubmitPress}
+          loading={isSubmitting}
+        />
+      }
+    >
       <ScreenHeader
         title="Create account"
         subtitle="Join events or organize your own."
+        backLabel="Back to log in"
       />
 
       {submitAttempted && !isFormValid ? (
         <Banner type="error" message="Please fix the highlighted fields." />
       ) : null}
 
+      <Text style={styles.label}>I want to</Text>
+      <View style={styles.roleRow}>
+        {ROLE_OPTIONS.map((option) => {
+          const selected = option.value === role;
+          return (
+            <Pressable
+              key={option.value}
+              accessibilityRole="radio"
+              accessibilityLabel={option.label}
+              accessibilityState={{ selected }}
+              onPress={() => setRole(option.value)}
+              style={[styles.roleCard, selected && styles.roleSelected]}
+            >
+              <View style={[styles.roleIcon, selected && styles.roleIconSelected]}>
+                <Ionicons
+                  name={option.icon}
+                  size={22}
+                  color={selected ? Colors.white : Colors.primary}
+                />
+              </View>
+              <Text style={styles.roleTitle}>{option.label}</Text>
+              <Text style={styles.roleText}>{option.description}</Text>
+              <View style={[styles.radio, selected && styles.radioSelected]}>
+                {selected ? <View style={styles.radioDot} /> : null}
+              </View>
+            </Pressable>
+          );
+        })}
+      </View>
+
       <FormField
         label="Full name"
+        icon="person-outline"
         value={formData.name}
         onChangeText={(text) => updateField("name", text)}
         onBlur={() => markTouched("name")}
@@ -136,6 +191,7 @@ export default function RegisterScreen() {
 
       <FormField
         label="Email"
+        icon="mail-outline"
         value={formData.email}
         onChangeText={(text) => updateField("email", text)}
         onBlur={() => markTouched("email")}
@@ -147,6 +203,7 @@ export default function RegisterScreen() {
 
       <FormField
         label="Password"
+        icon="lock-closed-outline"
         value={formData.password}
         onChangeText={(text) => updateField("password", text)}
         onBlur={() => markTouched("password")}
@@ -156,33 +213,6 @@ export default function RegisterScreen() {
         error={getFieldError("password")}
       />
 
-      <Text style={styles.label}>I want to</Text>
-      <View style={styles.roleRow}>
-        {ROLE_OPTIONS.map((option) => {
-          const selected = option.value === role;
-          return (
-            <Pressable
-              key={option.value}
-              accessibilityRole="radio"
-              accessibilityState={{ selected }}
-              onPress={() => setRole(option.value)}
-              style={[styles.roleOption, selected && styles.roleSelected]}
-            >
-              <Text style={[styles.roleText, selected && styles.roleTextSelected]}>
-                {option.label}
-              </Text>
-            </Pressable>
-          );
-        })}
-      </View>
-
-      <Button
-        title="Create account"
-        onPress={handleSubmitPress}
-        loading={isSubmitting}
-        style={styles.submit}
-      />
-
       <Pressable
         accessibilityRole="link"
         onPress={() =>
@@ -190,37 +220,57 @@ export default function RegisterScreen() {
         }
         style={styles.linkWrap}
       >
-        <Text style={styles.link}>Already registered? Log in</Text>
+        <Text style={styles.linkMuted}>
+          Already registered? <Text style={styles.link}>Log in</Text>
+        </Text>
       </Pressable>
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  label: {
-    fontSize: 13,
-    color: Colors.textMuted,
-    marginBottom: 8,
-    marginTop: 4,
-    fontWeight: "500",
-  },
-  roleRow: { flexDirection: "row", gap: 10 },
-  roleOption: {
+  label: { fontSize: FontSize.small, color: Colors.text, marginBottom: 10, fontWeight: "600" },
+  roleRow: { flexDirection: "row", gap: 12, marginBottom: 20 },
+  roleCard: {
     flex: 1,
-    paddingVertical: 14,
-    borderRadius: Radius.md,
-    borderWidth: 1,
+    padding: 14,
+    borderRadius: Radius.xl,
+    borderWidth: 1.5,
     borderColor: Colors.border,
     backgroundColor: Colors.surface,
-    alignItems: "center",
   },
   roleSelected: {
-    backgroundColor: Colors.primaryLight,
     borderColor: Colors.primary,
+    backgroundColor: Colors.primarySoft,
+    ...Shadow.card,
   },
-  roleText: { fontSize: 14, color: Colors.text },
-  roleTextSelected: { color: Colors.primary, fontWeight: "700" },
-  submit: { marginTop: 28 },
-  linkWrap: { alignItems: "center", marginTop: 20 },
-  link: { color: Colors.primary, fontSize: 14, fontWeight: "600" },
+  roleIcon: {
+    width: 42,
+    height: 42,
+    borderRadius: 14,
+    backgroundColor: Colors.primaryLight,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 10,
+  },
+  roleIconSelected: { backgroundColor: Colors.primary },
+  roleTitle: { fontSize: FontSize.body, fontWeight: "800", color: Colors.text },
+  roleText: { fontSize: FontSize.caption, color: Colors.textMuted, marginTop: 4, lineHeight: 17 },
+  radio: {
+    position: "absolute",
+    top: 14,
+    right: 14,
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    borderWidth: 2,
+    borderColor: Colors.border,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  radioSelected: { borderColor: Colors.primary },
+  radioDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: Colors.primary },
+  linkWrap: { alignItems: "center", marginTop: 8 },
+  linkMuted: { color: Colors.textMuted, fontSize: FontSize.small },
+  link: { color: Colors.primary, fontWeight: "700" },
 });

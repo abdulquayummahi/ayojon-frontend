@@ -1,8 +1,9 @@
+import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useEffect, useState } from "react";
 import { FlatList, StyleSheet, Text, View } from "react-native";
-import DateBadge from "../../../components/events/date-badge";
 import Banner from "../../../components/ui/banner";
+import BannerImage from "../../../components/ui/banner-image";
 import Button from "../../../components/ui/button";
 import Card from "../../../components/ui/card";
 import ChipRow from "../../../components/ui/chip-row";
@@ -11,7 +12,7 @@ import Screen from "../../../components/ui/screen";
 import ScreenHeader from "../../../components/ui/screen-header";
 import StatusBadge from "../../../components/ui/status-badge";
 import { EmptyState, LoadingState } from "../../../components/ui/state-views";
-import { Colors } from "../../../constants/theme";
+import { Colors, FontSize, Radius } from "../../../constants/theme";
 import { useApp } from "../../../context/app-context";
 import { useSimulatedLoading } from "../../../hooks/use-simulated-loading";
 import { Booking } from "../../../types/models";
@@ -96,20 +97,37 @@ export default function MyTicketsScreen() {
             const event = state.events.find((e) => e.id === item.eventId);
             if (!event) return null;
             const canCancel = item.status === "booked" && item.checkedInAt === null;
+            const isCancelled = item.status === "cancelled";
             return (
-              <Card>
+              <Card style={styles.card}>
                 <View style={styles.top}>
-                  <DateBadge date={event.date} />
+                  <BannerImage
+                    banner={event.banner}
+                    style={[styles.thumb, isCancelled && styles.faded]}
+                  />
                   <View style={styles.topText}>
                     <Text style={styles.title} numberOfLines={2}>
                       {event.title}
                     </Text>
-                    <Text style={styles.meta}>{formatShortDate(event)}</Text>
+                    <View style={styles.metaRow}>
+                      <Ionicons name="time-outline" size={14} color={Colors.textMuted} />
+                      <Text style={styles.meta}>{formatShortDate(event)}</Text>
+                    </View>
+                    <View style={styles.metaRow}>
+                      <Ionicons name="location-outline" size={14} color={Colors.textMuted} />
+                      <Text style={styles.meta} numberOfLines={1}>
+                        {event.venue}
+                      </Text>
+                    </View>
                   </View>
                 </View>
+
                 <View style={styles.idRow}>
-                  <Text style={styles.ticketId}>{item.id}</Text>
-                  {item.status === "cancelled" ? (
+                  <View style={styles.idBox}>
+                    <Ionicons name="qr-code-outline" size={15} color={Colors.primary} />
+                    <Text style={styles.ticketId}>{item.id}</Text>
+                  </View>
+                  {isCancelled ? (
                     <StatusBadge label="Cancelled" tone="danger" />
                   ) : item.checkedInAt ? (
                     <StatusBadge label="Checked in" tone="success" />
@@ -117,10 +135,13 @@ export default function MyTicketsScreen() {
                     <StatusBadge label="Booked" tone="primary" />
                   )}
                 </View>
+
                 <View style={styles.actions}>
                   <Button
                     title="View ticket"
+                    icon="qr-code-outline"
                     variant="secondary"
+                    size="sm"
                     onPress={() =>
                       router.push({
                         pathname: "/tickets/[ticketId]",
@@ -132,7 +153,9 @@ export default function MyTicketsScreen() {
                   {canCancel ? (
                     <Button
                       title="Cancel"
+                      icon="close-circle-outline"
                       variant="danger"
+                      size="sm"
                       loading={cancellingId === item.id}
                       disabled={cancellingId !== null}
                       onPress={() => setTicketToCancel(item)}
@@ -174,18 +197,27 @@ export default function MyTicketsScreen() {
 }
 
 const styles = StyleSheet.create({
-  list: { paddingTop: 12, paddingBottom: 24, flexGrow: 1 },
-  top: { flexDirection: "row", alignItems: "center" },
-  topText: { marginLeft: 12, flex: 1 },
-  title: { fontSize: 16, fontWeight: "800", color: Colors.text },
-  meta: { fontSize: 13, color: Colors.textMuted, marginTop: 3 },
+  list: { paddingBottom: 16, flexGrow: 1 },
+  card: { padding: 12 },
+  top: { flexDirection: "row", gap: 12 },
+  thumb: { width: 86, height: 86, borderRadius: Radius.lg },
+  faded: { opacity: 0.4 },
+  topText: { flex: 1, justifyContent: "center" },
+  title: { fontSize: FontSize.body, fontWeight: "800", color: Colors.text, marginBottom: 4 },
+  metaRow: { flexDirection: "row", alignItems: "center", gap: 5, marginTop: 2 },
+  meta: { flex: 1, fontSize: FontSize.caption, color: Colors.textMuted },
   idRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginTop: 14,
+    marginTop: 12,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: Colors.border,
+    borderStyle: "dashed",
   },
-  ticketId: { fontSize: 14, fontWeight: "700", color: Colors.text },
-  actions: { flexDirection: "row", gap: 10, marginTop: 14 },
+  idBox: { flexDirection: "row", alignItems: "center", gap: 6 },
+  ticketId: { fontSize: FontSize.body, fontWeight: "800", color: Colors.text, letterSpacing: 1 },
+  actions: { flexDirection: "row", gap: 10, marginTop: 12 },
   flex: { flex: 1 },
 });
